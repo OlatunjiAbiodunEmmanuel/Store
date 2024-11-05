@@ -22,7 +22,7 @@ const UserMenu = ({ currentUser }: UserMenuProps) => {
       <div className="relative z-30">
         <div
           onClick={toggleOpen}
-          className="p-2 border-[1px] border-slate-400 flex flex-row items-center rounded-full cursor-pointer hover:shadow-md transition text-slate-700"
+          className="p-2 border-[1px] border-slate-400 flex flex-row justify-between items-center rounded-md cursor-pointer hover:shadow-md transition text-slate-700 md:w-24"
         >
           <Avatar src={currentUser?.image}/>
           <AiFillCaretDown />

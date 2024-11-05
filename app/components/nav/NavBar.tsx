@@ -16,7 +16,7 @@ const NavBar = async () => {
       <div className="py-4 border-b-[1px]">
         <Container>
           <div className="flex items-center justify-between gap-3 md:gap-0">
-            <Link href="/"><Image src="/logo2.png" alt="logo" width={100} height={100}/></Link>
+            <Link href="/"><Image src="/logo.jpg" alt="logo" width={100} height={100} className="rounded-md"/></Link>
             <div className="hidden md:block">Search</div>
             <div className="flex gap-8 items-center md:gap-12">
               <div><CartCount/></div>
