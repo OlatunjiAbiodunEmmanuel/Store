@@ -6,6 +6,9 @@ const nextConfig = {
     eslint: {
         ignoreDuringBuilds: true,
       },
+    //   api: {
+    //     bodyParser: false, 
+    //   },
 }
 
 module.exports = nextConfig

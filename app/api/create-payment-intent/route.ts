@@ -5,13 +5,11 @@ import { getCurrentUser } from "@/actions/getCurrentUser";
 import { CartProductType } from "@/app/product/[productid]/ProductDetails";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: "2022-11-15" as Stripe.LatestApiVersion,
+  apiVersion: "2022-11-15" as Stripe.LatestApiVersion
 });
 
 const calculateOrderAmount = (items: CartProductType[]): number => {
-  return items.reduce((acc: number, item: CartProductType) => {
-    return acc + item.price * item.quantity;
-  }, 0);
+  return items.reduce((acc, item) => acc + item.price * item.quantity, 0);
 };
 
 export async function POST(request: Request) {
@@ -32,7 +30,17 @@ export async function POST(request: Request) {
     let paymentIntent;
     if (payment_intent_id) {
       console.log("Updating existing payment intent with ID:", payment_intent_id);
-      paymentIntent = await stripe.paymentIntents.update(payment_intent_id, { amount: total });
+
+      // Retrieve the existing payment intent to check its status
+      const existingPaymentIntent = await stripe.paymentIntents.retrieve(payment_intent_id);
+
+      if (existingPaymentIntent.status !== 'succeeded') {
+        // Update only if the intent is not already succeeded
+        paymentIntent = await stripe.paymentIntents.update(payment_intent_id, { amount: total });
+      } else {
+        console.log("PaymentIntent already succeeded; cannot update amount.");
+        return NextResponse.json({ error: "Cannot update PaymentIntent that has already succeeded" }, { status: 400 });
+      }
     } else {
       console.log("Creating new payment intent...");
       paymentIntent = await stripe.paymentIntents.create({
@@ -44,6 +52,7 @@ export async function POST(request: Request) {
 
     console.log("Payment Intent created/updated:", paymentIntent);
 
+    // Using Prisma to create or update an order
     await prisma.order.upsert({
       where: { paymentIntentId: paymentIntent.id },
       create: {
@@ -63,7 +72,12 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ paymentIntent });
   } catch (error) {
-    console.error("API Route Error:", error);
+    // Error handling with unknown type for better TypeScript compatibility
+    if (error instanceof Error) {
+      console.error("API Route Error:", error.message);
+    } else {
+      console.error("API Route Error:", error);
+    }
     return NextResponse.json({ error: "Failed to create or update payment intent" }, { status: 500 });
   }
 }
