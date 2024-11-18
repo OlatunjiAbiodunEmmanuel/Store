@@ -31,6 +31,8 @@ export type UploadedImageType = {
 };
 
 const client = new Client();
+
+
 client
   .setEndpoint("https://cloud.appwrite.io/v1")
   .setProject("672dd1d3000fabe729bc");
