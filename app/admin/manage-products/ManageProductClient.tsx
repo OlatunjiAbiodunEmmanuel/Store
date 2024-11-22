@@ -4,14 +4,31 @@ import Status from "@/app/components/Status";
 import { formatPrice } from "@/utilis/formatPrice";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { Product } from "@prisma/client";
-import React from "react";
-import { MdClose, MdDone } from "react-icons/md";
+import React, { useCallback } from "react";
+import { MdCached, MdClose, MdDelete, MdDone, MdRemoveRedEye } from "react-icons/md";
+import ActionBtn from "./ActionBtn";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { Client, Storage } from "appwrite"; 
+
+
+const client = new Client();
+
+
+client
+  .setEndpoint("https://cloud.appwrite.io/v1")
+  .setProject("672dd1d3000fabe729bc");
+
+const storage = new Storage(client); 
+
 
 interface ManageProductClientProps {
   products: Product[];
 }
 const paginationModel = { page: 0, pageSize: 5 };
 const ManageProductClient = ({ products }: ManageProductClientProps) => {
+  const router = useRouter();
   let rows: any = [];
 
   if (products) {
@@ -59,7 +76,6 @@ const ManageProductClient = ({ products }: ManageProductClientProps) => {
                 color="text-slate-700"
               />
             ) : (
-             
               <Status
                 text="Out Of Stock"
                 icon={MdDone}
@@ -74,12 +90,60 @@ const ManageProductClient = ({ products }: ManageProductClientProps) => {
     {
       field: "action",
       headerName: "ACTIONS",
-      width: 100,
+      width: 150,
       renderCell: (params) => {
-        return <div>Acion</div>;
+        return (
+          <div className="flex justify-between items-center gap-4 w-full">
+            <ActionBtn icon={MdCached} onClick={() => {handleToggleStock(params.row.id, params.row.inStock)}} />
+            <ActionBtn icon={MdDelete} onClick={()=>{handleDelete(params.row.id, params.row.images)}}/>
+            <ActionBtn icon={MdRemoveRedEye} onClick={()=>{router.push(`product/${params.row.id}`)}}/>
+          </div>
+        );
       },
     },
   ];
+const handleToggleStock = useCallback((id: string, inStock: boolean)=>{
+axios.put('/api/product', {
+  id,
+  inStock: !inStock
+}).then((res)=>{
+  toast.success("Product status Changed")
+  router.refresh()
+}).catch((err)=>{
+  toast.error("Failed to update product status")
+})
+}, [])
+
+const handleDelete =  useCallback(async (id:string, images:any[])=>{
+  toast("Deleting Product, please wait!")
+  const handleImageDelete = async () => {
+    try {
+      for (const item of images) {
+        if (item.image) {
+          await storage.deleteFile('672de0a8001e82cef20e', item.image);
+        }
+      }
+    } catch (error) {
+      console.log('Deleting image error', error);
+    }
+  };
+  await handleImageDelete();
+  axios.delete(`/api/product/${id}`).then((res)=>{
+    toast.success("Product deleted")
+    router.refresh()
+  }).catch((err)=>{
+    toast.error("Failed to Delete Product")
+  })
+}, [])
+
+
+
+
+
+
+
+
+
 
   return (
     <div className="max-w-[1150px] m-auto text-xl">
@@ -93,7 +157,7 @@ const ManageProductClient = ({ products }: ManageProductClientProps) => {
           initialState={{ pagination: { paginationModel } }}
           pageSizeOptions={[5, 20]}
           checkboxSelection
-          // sx={{ border: 0 }}
+          disableRowSelectionOnClick
         />
       </div>
     </div>
