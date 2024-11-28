@@ -2,18 +2,20 @@ import Container from "@/app/components/Container";
 import React from "react";
 import ProductDetails from "./ProductDetails";
 import ListRating from "./ListRating";
-import { products } from "@/utilis/products";
+import getProductById from "@/actions/getProductById";
+import NullData from "@/app/components/NullData";
 
 interface IParams {
-  productid?: string;
+  productId?: string;
 }
 
-const ProductPage = ({ params }: { params: IParams }) => {
+const ProductPage = async ({ params }: { params: { productid: string } }) => {
+  console.log("Params received in ProductPage:", params);
 
-  const product = products.find((product) => product.id === params.productid);
+  const product = await getProductById({ productId: params.productid });
 
   if (!product) {
-    return <div>Product not found</div>; 
+    return <div>Product not found</div>;
   }
 
   return (

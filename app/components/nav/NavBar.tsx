@@ -6,6 +6,7 @@ import Image from "next/image";
 import CartCount from "./CartCount";
 import UserMenu from "./UserMenu";
 import { getCurrentUser } from "@/actions/getCurrentUser";
+import Category from "./Category";
 
 
 const NavBar = async () => {
@@ -25,6 +26,7 @@ const NavBar = async () => {
           </div>
         </Container>
       </div>
+      <Category/>
     </div>
   );
 };
