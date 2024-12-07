@@ -1,3 +1,4 @@
+"use client";
 import { useRouter, useSearchParams } from "next/navigation";
 import queryString from "query-string";
 import React, { useCallback } from "react";
@@ -12,23 +13,41 @@ const CategoryComponent = ({
   icon: Icon,
   selected,
 }: CategoryComponentProps) => {
-    const router = useRouter();
-    const params = useSearchParams();
+  const router = useRouter();
+  const params = useSearchParams();
   const handleClick = useCallback(() => {
-    if (label === 'All') {
-        router.push('/')
-    }else{{
-        let currentQuery ={}
+    if (label === "All") {
+      router.push("/");
+    } else {
+      {
+        let currentQuery = {};
         if (params) {
-            currentQuery = queryString.parse(params.toString());
+          currentQuery = queryString.parse(params.toString());
         }
-    }}
-  }, []);
+
+        const updatedQuery: any = {
+          ...currentQuery,
+          category: label,
+        };
+
+        const url = queryString.stringifyUrl(
+          {
+            url: "/",
+            query: updatedQuery,
+          },
+          {
+            skipNull: true,
+          }
+        );
+        router.push(url);
+      }
+    }
+  }, [label, params, router]);
 
   return (
     <div
       onClick={handleClick}
-      className={`flex items-center justify-center text-center gap-1 p-2 order-b-2 hover:text-slate-800 transition cursor-pointer
+      className={`flex items-center justify-center text-center gap-1 p-2 border-b-2 hover:text-slate-800 transition cursor-pointer
     ${
       selected
         ? "border-b-slate-800 text-slate-800"
